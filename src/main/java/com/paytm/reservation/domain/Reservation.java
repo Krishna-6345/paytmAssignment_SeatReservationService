@@ -20,7 +20,7 @@ public class Reservation {
     @Column(name = "user_id", nullable = false, length = 128)
     private String userId;
 
-    @Column(name = "seat_identifiers", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "seat_identifiers", nullable = false, columnDefinition = "text")
     private String seatIdentifiers;
 
     @Column(name = "seat_count", nullable = false)
@@ -29,7 +29,7 @@ public class Reservation {
     @Column(name = "amount_paise", nullable = false)
     private Long amountPaise;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ReservationStatusConverter.class)
     @Column(nullable = false, length = 32)
     private ReservationStatus status = ReservationStatus.CONFIRMED;
 
@@ -43,6 +43,19 @@ public class Reservation {
     private Instant updatedAt = Instant.now();
 
     public Reservation() {}
+
+    public Reservation(UUID showId, String userId, String seatIdentifiers, Integer seatCount,
+                       Long amountPaise, ReservationStatus status, String idempotencyKey) {
+        this.showId = showId;
+        this.userId = userId;
+        this.seatIdentifiers = seatIdentifiers;
+        this.seatCount = seatCount;
+        this.amountPaise = amountPaise;
+        this.status = status;
+        this.idempotencyKey = idempotencyKey;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
 
     public Reservation(UUID id, UUID showId, String userId, String seatIdentifiers, Integer seatCount,
                        Long amountPaise, ReservationStatus status, String idempotencyKey) {

@@ -20,7 +20,7 @@ public class Seat {
     @Column(name = "seat_number", nullable = false, length = 64)
     private String seatNumber;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = SeatStatusConverter.class)
     @Column(nullable = false, length = 32)
     private SeatStatus status = SeatStatus.AVAILABLE;
 

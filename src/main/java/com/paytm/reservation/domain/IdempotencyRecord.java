@@ -23,7 +23,7 @@ public class IdempotencyRecord {
     @Column(name = "reservation_id")
     private UUID reservationId;
 
-    @Column(name = "response_payload", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "response_payload", nullable = false, columnDefinition = "text")
     private String responsePayload;
 
     @Column(name = "created_at", nullable = false, updatable = false)

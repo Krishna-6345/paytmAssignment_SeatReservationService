@@ -170,8 +170,28 @@ public class ReservationService {
                     maxSeatsPerUser + " seats for this show");
         }
 
-        // 6. Atomic conditional UPDATE on seats (... WHERE status='available')
-        UUID reservationId = UUID.randomUUID();
+        // 6. Persist Reservation entity first to satisfy FK constraint within transaction
+        long totalAmountPaise = show.getPricePaise() * sortedSeats.size();
+        String seatIdentifiersJson;
+        try {
+            seatIdentifiersJson = objectMapper.writeValueAsString(sortedSeats);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to format seat identifiers", e);
+        }
+
+        Reservation reservation = new Reservation(
+                showId,
+                userId,
+                seatIdentifiersJson,
+                sortedSeats.size(),
+                totalAmountPaise,
+                ReservationStatus.CONFIRMED,
+                request.idempotencyKey()
+        );
+        Reservation savedReservation = reservationRepository.saveAndFlush(reservation);
+        UUID reservationId = savedReservation.getId();
+
+        // 7. Atomic conditional UPDATE on seats (... WHERE status='available')
         int updatedRows = seatRepository.reserveSeatsAtomically(
                 showId,
                 sortedSeats,
@@ -186,27 +206,6 @@ public class ReservationService {
             reservationMetrics.incrementDeclined("seat_taken");
             throw new SeatNotAvailableException("One or more requested seats are already reserved or unavailable");
         }
-
-        // 7. Persist Reservation entity
-        long totalAmountPaise = show.getPricePaise() * sortedSeats.size();
-        String seatIdentifiersJson;
-        try {
-            seatIdentifiersJson = objectMapper.writeValueAsString(sortedSeats);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to format seat identifiers", e);
-        }
-
-        Reservation reservation = new Reservation(
-                reservationId,
-                showId,
-                userId,
-                seatIdentifiersJson,
-                sortedSeats.size(),
-                totalAmountPaise,
-                ReservationStatus.CONFIRMED,
-                request.idempotencyKey()
-        );
-        reservationRepository.save(reservation);
 
         // 8. Update user quota
         quota.setActiveSeatCount(currentQuota + sortedSeats.size());

@@ -18,10 +18,10 @@ CREATE TABLE reservations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     show_id UUID NOT NULL REFERENCES shows(id) ON DELETE RESTRICT,
     user_id VARCHAR(128) NOT NULL,
-    seat_identifiers JSONB NOT NULL,
+    seat_identifiers TEXT NOT NULL,
     seat_count INT NOT NULL CHECK (seat_count > 0),
     amount_paise BIGINT NOT NULL CHECK (amount_paise >= 0),
-    status VARCHAR(32) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'cancelled')),
+    status VARCHAR(32) NOT NULL DEFAULT 'confirmed' CHECK (LOWER(status) IN ('confirmed', 'cancelled')),
     idempotency_key VARCHAR(128) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -36,8 +36,8 @@ CREATE TABLE seats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     show_id UUID NOT NULL REFERENCES shows(id) ON DELETE CASCADE,
     seat_number VARCHAR(64) NOT NULL,
-    status VARCHAR(32) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'held', 'confirmed')),
-    reservation_id UUID REFERENCES reservations(id) ON DELETE SET NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'available' CHECK (LOWER(status) IN ('available', 'held', 'confirmed')),
+    reservation_id UUID REFERENCES reservations(id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
     version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -62,7 +62,7 @@ CREATE TABLE idempotency_records (
     idempotency_key VARCHAR(128) NOT NULL,
     request_hash VARCHAR(64) NOT NULL,
     reservation_id UUID REFERENCES reservations(id) ON DELETE CASCADE,
-    response_payload JSONB NOT NULL,
+    response_payload TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id, idempotency_key)
 );

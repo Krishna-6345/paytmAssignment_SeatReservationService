@@ -71,6 +71,12 @@ public class ReservationServiceTest {
         when(showRepository.findById(showId)).thenReturn(Optional.of(show));
         when(userShowQuotaRepository.findByShowIdAndUserIdForUpdate(showId, userId))
                 .thenReturn(Optional.of(new UserShowQuota(showId, userId, 0)));
+        UUID expectedResId = UUID.randomUUID();
+        when(reservationRepository.saveAndFlush(any(Reservation.class))).thenAnswer(inv -> {
+            Reservation r = inv.getArgument(0);
+            r.setId(expectedResId);
+            return r;
+        });
         when(seatRepository.reserveSeatsAtomically(eq(showId), anyList(), any(UUID.class), eq(SeatStatus.AVAILABLE), eq(SeatStatus.CONFIRMED)))
                 .thenReturn(2);
 
@@ -81,7 +87,7 @@ public class ReservationServiceTest {
         assertEquals("confirmed", response.status());
         assertEquals(40000L, response.amountPaise());
         assertEquals(2, response.seats().size());
-        verify(reservationRepository, times(1)).save(any(Reservation.class));
+        verify(reservationRepository, times(1)).saveAndFlush(any(Reservation.class));
         verify(idempotencyRecordRepository, times(1)).save(any(IdempotencyRecord.class));
     }
 
@@ -96,6 +102,11 @@ public class ReservationServiceTest {
         when(showRepository.findById(showId)).thenReturn(Optional.of(show));
         when(userShowQuotaRepository.findByShowIdAndUserIdForUpdate(showId, userId))
                 .thenReturn(Optional.of(new UserShowQuota(showId, userId, 0)));
+        when(reservationRepository.saveAndFlush(any(Reservation.class))).thenAnswer(inv -> {
+            Reservation r = inv.getArgument(0);
+            r.setId(UUID.randomUUID());
+            return r;
+        });
         // 2 requested, only 1 updated (conflict)
         when(seatRepository.reserveSeatsAtomically(eq(showId), anyList(), any(UUID.class), eq(SeatStatus.AVAILABLE), eq(SeatStatus.CONFIRMED)))
                 .thenReturn(1);
@@ -105,7 +116,7 @@ public class ReservationServiceTest {
                 reservationService.reserveSeats(showId, userId, request));
 
         assertEquals("seat_taken", ex.getReason());
-        verify(reservationRepository, never()).save(any());
+        verify(idempotencyRecordRepository, never()).save(any());
     }
 
     @Test
