@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                            "level": "%level",
+                            "service": "seat-reservation-service",
+                            "thread": "%thread",
+                            "logger": "%logger",
+                            "request_id": "%mdc{request_id:-none}",
+                            "user_id": "%mdc{user_id:-anonymous}"
+                        }
+                    </pattern>
+                </pattern>
+                <message/>
+                <mdc/>
+                <arguments/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_JSON"/>
+    </root>
+
+    <logger name="com.paytm.reservation" level="DEBUG"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.hibernate" level="WARN"/>
+</configuration>
