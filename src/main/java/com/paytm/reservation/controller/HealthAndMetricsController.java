@@ -26,6 +26,23 @@ public class HealthAndMetricsController {
         this.prometheusMeterRegistry = prometheusMeterRegistry;
     }
 
+    @GetMapping("/")
+    public ResponseEntity<Map<String, Object>> root() {
+        return ResponseEntity.ok(Map.of(
+                "service", "Seat Reservation Service",
+                "status", "UP",
+                "docs", "Check README.md or available endpoints below",
+                "endpoints", Map.of(
+                        "health_live", "/health/live",
+                        "health_ready", "/health/ready",
+                        "metrics", "/metrics",
+                        "shows", "/shows",
+                        "reserve", "POST /shows/{showId}/reserve",
+                        "cancel", "POST /reservations/{reservationId}/cancel"
+                )
+        ));
+    }
+
     @GetMapping("/health/live")
     public ResponseEntity<Map<String, String>> liveness() {
         return ResponseEntity.ok(Map.of("status", "UP"));
