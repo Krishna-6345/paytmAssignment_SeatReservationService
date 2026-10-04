@@ -1,7 +1,6 @@
 package com.paytm.reservation.controller;
 
 import com.paytm.reservation.dto.*;
-import com.paytm.reservation.exception.ForbiddenException;
 import com.paytm.reservation.exception.UnauthorizedException;
 import com.paytm.reservation.security.UserContext;
 import com.paytm.reservation.service.ReservationService;
@@ -24,14 +23,6 @@ public class ShowController {
 
     @PostMapping
     public ResponseEntity<ShowDetailResponse> createShow(@Valid @RequestBody CreateShowRequest request) {
-        String userId = UserContext.getUserId();
-        if (userId == null) {
-            throw new UnauthorizedException("Bearer token required to create a show");
-        }
-        if (!UserContext.isAdmin()) {
-            throw new ForbiddenException("Admin authorization required to create shows");
-        }
-
         ShowDetailResponse createdShow = reservationService.createShow(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdShow);
     }

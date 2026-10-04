@@ -56,7 +56,7 @@ All monetary values are strictly represented in **integer paise** (e.g. ₹250.0
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/shows` | Admin (`Bearer admin`) | Create a show with seats starting `available` and `price_paise` |
+| `POST` | `/shows` | Public | Create a show with seats starting `available` and `price_paise` |
 | `POST` | `/shows/{id}/reserve` | User (`Bearer <user_id>`) | Atomically reserve seats with an `idempotency_key` |
 | `POST` | `/reservations/{id}/cancel` | Owner (`Bearer <user_id>`) | Guarded cancellation; releases seats back to `available` |
 | `GET` | `/shows/{id}` | Public | Detailed per-seat statuses + counts (`available + held + confirmed == total`) |
